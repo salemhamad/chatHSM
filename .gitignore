@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+**/node_modules/
+.pnp
+.pnp.*
+
+# Builds and Cache
+.next/
+**/dist/
+**/.next/
+**/.npm-cache/
+*.tsbuildinfo
+next-env.d.ts
+
+# SQLite Database and logs
+backend/prisma/*.db
+backend/prisma/*.db-journal
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+**/.env
+**/.env*
+
+# OS Metadata
+.DS_Store
+Thumbs.db
+
+# User Uploaded Content
+backend/public/uploads/*
+!backend/public/uploads/.gitkeep
