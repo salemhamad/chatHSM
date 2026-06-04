@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { ChatState, Message, Conversation, PendingAttachment, Attachment } from '../types';
 import { generateId } from '../lib/utils';
-import { apiClient, getToken, setToken, removeToken } from '../lib/api';
+import { apiClient, getToken, setToken, removeToken, API_BASE_URL } from '../lib/api';
 
 interface ChatStore extends ChatState {
   setConversations: (conversations: Conversation[]) => void;
@@ -63,7 +63,7 @@ const ensureAuth = async () => {
   try {
     // Try to login first, if failed, register
     try {
-      const res = await fetch('http://localhost:3001/api/auth/login', {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: guestEmail, password: guestPassword }),
@@ -77,7 +77,7 @@ const ensureAuth = async () => {
       // Ignore login failure, proceed to register
     }
 
-    const registerRes = await fetch('http://localhost:3001/api/auth/register', {
+    const registerRes = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -170,7 +170,7 @@ export const useChatStore = create<ChatStore>()(
               const formData = new FormData();
               formData.append('file', pending.file);
 
-              const response = await fetch('http://localhost:3001/api/attachments/upload', {
+              const response = await fetch(`${API_BASE_URL}/attachments/upload`, {
                 method: 'POST',
                 headers: {
                   ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -221,7 +221,7 @@ export const useChatStore = create<ChatStore>()(
         let currentText = '';
 
         try {
-          const response = await fetch('http://localhost:3001/api/ai/chat', {
+          const response = await fetch(`${API_BASE_URL}/ai/chat`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

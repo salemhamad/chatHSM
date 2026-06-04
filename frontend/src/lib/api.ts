@@ -1,4 +1,13 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return `${window.location.origin}/api`;
+    }
+  }
+  return 'http://localhost:3001/api';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const getToken = () => {
   if (typeof window !== 'undefined') {

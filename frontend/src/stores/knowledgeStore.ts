@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { apiClient, getToken } from '../lib/api';
+import { apiClient, getToken, API_BASE_URL } from '../lib/api';
 
 export interface Document {
   id: string;
@@ -124,7 +124,7 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
           reject(new Error('Network error during upload.'));
         });
 
-        xhr.open('POST', 'http://localhost:3001/api/knowledge/upload');
+        xhr.open('POST', `${API_BASE_URL}/knowledge/upload`);
         if (token) {
           xhr.setRequestHeader('Authorization', `Bearer ${token}`);
         }
