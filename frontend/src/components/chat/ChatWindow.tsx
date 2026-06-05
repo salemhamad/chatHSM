@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect } from 'react';
 import { useChatStore } from '../../stores/chatStore';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -6,6 +8,7 @@ import { UserMessage } from './UserMessage';
 import { AIMessage } from './AIMessage';
 import { ArrowDown, MessageSquarePlus } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const ChatWindow: React.FC = () => {
   const { messages, activeConversationId, loadMessages, isStreaming, streamingContent, isLoading } = useChatStore();
@@ -19,7 +22,6 @@ export const ChatWindow: React.FC = () => {
   }, [activeConversationId, loadMessages]);
 
   useEffect(() => {
-    // Auto-scroll when new messages arrive or streaming content changes
     if (isAtBottom) {
       scrollToBottom();
     }
@@ -27,9 +29,18 @@ export const ChatWindow: React.FC = () => {
 
   if (!activeConversationId) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-fadeIn select-none">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex-1 flex flex-col items-center justify-center p-8 text-center select-none"
+      >
         {/* Square background video player with neon glow */}
-        <div className="w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] rounded-2xl overflow-hidden logo-neon-shadow border border-white/10 bg-black relative mb-8">
+        <motion.div 
+          whileHover={{ scale: 1.02 }}
+          transition={{ type: 'spring' as const, stiffness: 300, damping: 20 }}
+          className="w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] rounded-2xl overflow-hidden logo-neon-shadow border border-white/10 bg-black relative mb-8"
+        >
           <video
             src="/background.mp4"
             autoPlay
@@ -38,9 +49,9 @@ export const ChatWindow: React.FC = () => {
             playsInline
             className="w-full h-full object-cover object-center select-none"
           />
-        </div>
+        </motion.div>
         
-        <h2 className="text-3xl font-extrabold mb-3 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/70">
+        <h2 className="text-3xl font-extrabold mb-3 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-white/95 to-white/70">
           {t('chat.welcomeTitle')}
         </h2>
         <p className="text-white/40 text-sm max-w-sm mb-10 leading-relaxed">
@@ -54,9 +65,12 @@ export const ChatWindow: React.FC = () => {
             t('chat.suggestedPrompt3'),
             t('chat.suggestedPrompt4')
           ].map((prompt, i) => (
-            <button 
+            <motion.button 
               key={i}
-              className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all text-start text-sm text-white/70 hover:text-white group flex flex-col justify-between h-24"
+              whileHover={{ scale: 1.015, translateY: -2, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.12)' }}
+              whileTap={{ scale: 0.985 }}
+              transition={{ type: 'spring' as const, stiffness: 400, damping: 20 }}
+              className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 transition-colors text-start text-sm text-white/70 hover:text-white group flex flex-col justify-between h-24 cursor-pointer"
               onClick={() => {
                 const chatStore = useChatStore.getState();
                 chatStore.sendMessage(prompt);
@@ -64,63 +78,80 @@ export const ChatWindow: React.FC = () => {
             >
               <MessageSquarePlus className="w-4 h-4 text-cyan-400 opacity-40 group-hover:opacity-100 transition-opacity" />
               <span>{prompt}</span>
-            </button>
+            </motion.button>
           ))}
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="flex-1 relative flex flex-col overflow-hidden bg-background">
+    <div className="flex-1 relative flex flex-col overflow-hidden bg-transparent">
       {/* Scrollable message area */}
       <div 
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 pb-32"
       >
-        {isLoading ? (
-          <div className="flex flex-col gap-6 animate-pulse">
-            <div className="h-24 bg-white/5 rounded-2xl w-3/4 self-end" />
-            <div className="h-32 bg-white/5 rounded-2xl w-3/4 self-start" />
-          </div>
-        ) : (
-          messages.map((msg) => (
-            msg.role === 'USER' 
-              ? <UserMessage key={msg.id} message={msg} />
-              : <AIMessage key={msg.id} message={msg} />
-          ))
-        )}
+        <AnimatePresence mode="popLayout">
+          {isLoading ? (
+            <motion.div 
+              key="loading-skeleton"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col gap-6 animate-pulse"
+            >
+              <div className="h-20 bg-white/5 rounded-2xl w-3/4 self-end border border-white/5" />
+              <div className="h-28 bg-white/5 rounded-2xl w-3/4 self-start border border-white/5" />
+            </motion.div>
+          ) : (
+            messages.map((msg) => (
+              msg.role === 'USER' 
+                ? <UserMessage key={msg.id} message={msg} />
+                : <AIMessage key={msg.id} message={msg} />
+            ))
+          )}
 
-        {isStreaming && streamingContent && (
-          <AIMessage 
-            message={{
-              id: 'streaming',
-              role: 'ASSISTANT',
-              content: streamingContent,
-              isStreaming: true,
-              conversationId: activeConversationId,
-              userId: 'system',
-              attachments: [],
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            }} 
-          />
-        )}
+          {isStreaming && streamingContent && (
+            <AIMessage 
+              key="streaming"
+              message={{
+                id: 'streaming',
+                role: 'ASSISTANT',
+                content: streamingContent,
+                isStreaming: true,
+                conversationId: activeConversationId,
+                userId: 'system',
+                attachments: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              }} 
+            />
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Floating scroll to bottom button */}
-      {!isAtBottom && (
-        <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-10 animate-slideUp">
-          <Button 
-            variant="secondary" 
-            size="icon" 
-            className="rounded-full w-10 h-10 shadow-2xl bg-gray-900/80 backdrop-blur-md"
-            onClick={scrollToBottom}
+      <AnimatePresence>
+        {!isAtBottom && (
+          <motion.div 
+            initial={{ opacity: 0, y: 15, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 15, scale: 0.9 }}
+            transition={{ type: 'spring' as const, stiffness: 350, damping: 20 }}
+            className="absolute bottom-28 left-1/2 -translate-x-1/2 z-10"
           >
-            <ArrowDown className="w-5 h-5 text-white" />
-          </Button>
-        </div>
-      )}
+            <Button 
+              variant="secondary" 
+              size="icon" 
+              className="rounded-full w-10 h-10 shadow-2xl bg-[#08080c]/90 backdrop-blur-xl border border-white/10 text-white cursor-pointer"
+              onClick={scrollToBottom}
+            >
+              <ArrowDown className="w-4 h-4 text-white" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Send, Plus, Loader2, AlertCircle, Mic } from 'lucide-react';
 import { useChatStore } from '../../stores/chatStore';
@@ -11,6 +13,7 @@ import { PrefetchIndicator } from './PrefetchIndicator';
 import { VoiceRecorder } from './VoiceRecorder';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import { cn } from '../../lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const ChatInput: React.FC = () => {
   const [content, setContent] = useState('');
@@ -21,7 +24,6 @@ export const ChatInput: React.FC = () => {
   const { startRecording } = useVoiceRecorder();
   const { t } = useTranslation();
 
-  // Predictive pre-fetching integration
   const { onDraftChange, cancelPrefetch, status: prefetchStatus } = usePrefetch(activeConversationId);
 
   const adjustTextareaHeight = () => {
@@ -39,7 +41,6 @@ export const ChatInput: React.FC = () => {
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     setContent(newValue);
-    // Notify the prefetch hook of the draft change
     onDraftChange(newValue);
   };
 
@@ -54,13 +55,10 @@ export const ChatInput: React.FC = () => {
       textareaRef.current.style.height = 'auto';
     }
 
-    // Attempt to consume any ready prefetch result
     const prefetchResult = usePrefetchStore.getState().consumeResult();
-    // Cancel any in-flight prefetch
     cancelPrefetch();
 
     try {
-      // Merge prefetch context into the send request
       const sendOptions: {
         webSearch?: boolean;
         prefetchContext?: string;
@@ -95,24 +93,31 @@ export const ChatInput: React.FC = () => {
   const showSend = content.trim().length > 0 || pendingAttachments.length > 0;
 
   return (
-    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#0b0c10] via-[#0b0c10]/90 to-transparent pt-12 pb-6 px-4 md:px-8 pointer-events-none z-20">
+    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#050508] via-[#050508]/90 to-transparent pt-16 pb-6 px-4 md:px-8 pointer-events-none z-20">
       <div className="max-w-3xl mx-auto w-full pointer-events-auto relative">
 
         {/* Error State */}
-        {error && (
-          <div className="absolute -top-12 inset-x-0 flex justify-center animate-fadeIn">
-            <div className="bg-red-500/10 border border-red-500/20 backdrop-blur-md text-red-200 px-4 py-2 rounded-xl text-sm flex items-center gap-3 shadow-lg">
-              <AlertCircle className="w-4 h-4" />
-              <span>{error}</span>
-              <button
-                onClick={handleRetry}
-                className="text-xs font-semibold bg-red-500/20 hover:bg-red-500/30 px-2 py-1 rounded transition-colors"
-              >
-                {t('input.retry')}
-              </button>
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              className="absolute -top-12 inset-x-0 flex justify-center"
+            >
+              <div className="bg-red-500/10 border border-red-500/20 backdrop-blur-md text-red-200 px-4 py-2 rounded-xl text-sm flex items-center gap-3 shadow-lg">
+                <AlertCircle className="w-4 h-4 text-red-400" />
+                <span>{error}</span>
+                <button
+                  onClick={handleRetry}
+                  className="text-xs font-semibold bg-red-500/20 hover:bg-red-500/30 px-2 py-1 rounded transition-colors cursor-pointer"
+                >
+                  {t('input.retry')}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Attachment Previews */}
         {pendingAttachments.length > 0 && (
@@ -124,27 +129,31 @@ export const ChatInput: React.FC = () => {
         {/* Voice Recorder Overlay */}
         {isRecording && <VoiceRecorder onResult={(text) => setContent(prev => prev + (prev ? ' ' : '') + text)} />}
 
-        {/* RGB glow boundary frame */}
+        {/* Lit glass boundary frame (shadcn/ui premium style) */}
         <div className={cn(
-          "w-full rounded-3xl p-[2px] animate-rgb-glow shadow-[0_0_20px_rgba(0,255,213,0.15)]",
-          showSend && "active-glow"
+          "w-full rounded-[24px] p-[1px] transition-all duration-500 shadow-2xl shadow-black/60",
+          "bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/[0.04]",
+          showSend && "shadow-[0_0_30px_rgba(6,182,212,0.06)]"
         )}>
 
-          {/* Inner container */}
-          <div className="w-full min-h-[93px] bg-[#161922] rounded-[22px] flex items-end gap-3 px-4 py-3 box-border">
+          {/* Inner card container */}
+          <div className="w-full min-h-[80px] bg-[#0c0d12]/90 backdrop-blur-3xl rounded-[23px] flex items-end gap-3 px-4 py-3">
 
-            {/* Attachment (+) menu toggle button */}
+            {/* Attachment Menu Trigger */}
             <div className="relative shrink-0 mb-1">
               <button
                 onClick={toggleAttachmentMenu}
                 className={cn(
-                  "p-2 rounded-xl transition-all duration-300 flex items-center justify-center group",
-                  attachmentMenuOpen ? "bg-cyan-500/20 text-cyan-400" : "bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-400 group-hover:text-cyan-400"
+                  "p-2 rounded-xl transition-all duration-200 flex items-center justify-center cursor-pointer",
+                  attachmentMenuOpen ? "bg-cyan-500/15 text-cyan-400" : "bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] text-white/50 hover:text-white"
                 )}
               >
-                <Plus className={cn("w-5 h-5 transition-transform duration-300", attachmentMenuOpen && "rotate-45")} />
+                <Plus className={cn("w-5 h-5 transition-transform duration-200", attachmentMenuOpen && "rotate-45")} />
               </button>
-              {attachmentMenuOpen && <AttachmentMenu />}
+              
+              <AnimatePresence>
+                {attachmentMenuOpen && <AttachmentMenu />}
+              </AnimatePresence>
             </div>
 
             {/* Input textarea */}
@@ -155,51 +164,55 @@ export const ChatInput: React.FC = () => {
               onKeyDown={handleKeyDown}
               dir="auto"
               placeholder={t('input.placeholder')}
-              className="flex-1 bg-transparent border-none outline-none text-white text-base resize-none max-h-[180px] py-2 leading-relaxed font-medium placeholder-gray-500 no-scrollbar mb-1"
+              className="flex-1 bg-transparent border-none outline-none text-white text-sm md:text-base resize-none max-h-[180px] py-2 leading-relaxed placeholder-white/20 no-scrollbar mb-1"
               rows={1}
               disabled={isStreaming || isRecording}
             />
 
-            {/* Dynamic buttons (voice recorder / send) */}
+            {/* Dynamic Button Area (Voice / Send toggle) */}
             <div className="relative w-11 h-11 shrink-0 mb-1 flex items-center justify-center">
-              {/* Voice input button */}
-              <button
-                onClick={startRecording}
-                disabled={isStreaming || isRecording}
-                className={cn(
-                  "absolute inset-0 rounded-xl bg-gray-800 hover:bg-gray-700 text-white flex items-center justify-center transition-all duration-300 transform active:scale-95",
-                  showSend ? "opacity-0 scale-75 pointer-events-none rotate-90" : "opacity-100 scale-100 rotate-0"
-                )}
-                title={t('input.voiceInput')}
-              >
-                <Mic className="w-5 h-5 text-gray-400" />
-              </button>
-
-              {/* Send button */}
-              <button
-                onClick={handleSend}
-                disabled={isStreaming || isRecording}
-                className={cn(
-                  "absolute inset-0 rounded-xl text-black flex items-center justify-center transition-all duration-300 transform active:scale-95",
-                  showSend
-                    ? "opacity-100 scale-100 rotate-0 bg-cyan-500 hover:bg-cyan-400 shadow-lg shadow-cyan-500/20"
-                    : "opacity-0 scale-75 pointer-events-none -rotate-90 bg-gray-800"
-                )}
-                title={t('input.send')}
-              >
-                {isStreaming ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-black" />
+              <AnimatePresence mode="wait">
+                {showSend ? (
+                  <motion.button
+                    key="send-btn"
+                    initial={{ scale: 0.85, rotate: -30, opacity: 0 }}
+                    animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                    exit={{ scale: 0.85, rotate: -30, opacity: 0 }}
+                    transition={{ type: 'spring' as const, stiffness: 500, damping: 22 }}
+                    onClick={handleSend}
+                    disabled={isStreaming || isRecording}
+                    className="absolute inset-0 rounded-xl text-black flex items-center justify-center bg-cyan-500 hover:bg-cyan-400 shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer"
+                    title={t('input.send')}
+                  >
+                    {isStreaming ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-black" />
+                    ) : (
+                      <Send className="w-5 h-5 rtl:-scale-x-100 text-black" />
+                    )}
+                  </motion.button>
                 ) : (
-                  <Send className="w-5 h-5 rtl:-scale-x-100 text-black" />
+                  <motion.button
+                    key="mic-btn"
+                    initial={{ scale: 0.85, rotate: 30, opacity: 0 }}
+                    animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                    exit={{ scale: 0.85, rotate: 30, opacity: 0 }}
+                    transition={{ type: 'spring' as const, stiffness: 500, damping: 22 }}
+                    onClick={startRecording}
+                    disabled={isStreaming || isRecording}
+                    className="absolute inset-0 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.06] text-white/50 hover:text-white flex items-center justify-center active:scale-95 cursor-pointer"
+                    title={t('input.voiceInput')}
+                  >
+                    <Mic className="w-5 h-5" />
+                  </motion.button>
                 )}
-              </button>
+              </AnimatePresence>
             </div>
 
           </div>
         </div>
 
-        {/* Footer row: Prefetch indicator + Disclaimer */}
-        <div className="flex items-center justify-between mt-2 px-1">
+        {/* Footer row: Prefetch indicator & Disclaimer */}
+        <div className="flex items-center justify-between mt-2 px-1 select-none">
           <PrefetchIndicator status={prefetchStatus} />
           <div className="text-[10px] text-white/20">
             {t('input.disclaimer')}

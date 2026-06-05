@@ -26,6 +26,7 @@ import { cn } from '../../lib/utils';
 import { useUserStore } from '../../stores/userStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { removeToken } from '../../lib/api';
+import { motion } from 'framer-motion';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -118,23 +119,29 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
     URL.revokeObjectURL(url);
   }, [profile]);
 
-  if (!isOpen) return null;
-
   const tokenPercent = profile ? Math.min(100, Math.round((profile.dailyTokensUsed / profile.dailyTokensLimit) * 100)) : 0;
   const usernameInitial = displayName ? displayName.charAt(0).toUpperCase() : '?';
 
   return (
     <>
       {/* Backdrop overlay */}
-      <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-md z-[60] animate-fadeIn"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25 }}
+        className="fixed inset-0 bg-black/70 backdrop-blur-md z-[60] cursor-pointer"
         onClick={onClose}
       />
 
-      {/* Settings Panel */}
-      <div className="fixed inset-0 z-[61] flex items-center justify-center p-4 animate-fadeIn">
-        <div
-          className="w-full max-w-[680px] h-[580px] max-h-[85vh] bg-[#0e0f13]/95 backdrop-blur-2xl border border-white/[0.06] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slideUp"
+      {/* Settings Panel Modal */}
+      <div className="fixed inset-0 z-[61] flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 15 }}
+          transition={{ type: 'spring' as const, stiffness: 350, damping: 25 }}
+          className="w-full max-w-[680px] h-[580px] max-h-[85vh] bg-[#0e0f13]/95 backdrop-blur-2xl border border-white/[0.06] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -144,7 +151,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
             </h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-xl text-white/60 hover:text-white transition-colors"
+              className="p-2 hover:bg-white/10 rounded-xl text-white/60 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -154,21 +161,31 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
           <div className="flex flex-1 min-h-0">
             {/* Tab Sidebar */}
             <nav className="w-[180px] shrink-0 border-e border-white/[0.04] bg-white/[0.01] py-3 px-2 flex flex-col gap-1 overflow-y-auto no-scrollbar">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => { setActiveTab(tab.id); clearMessages(); }}
-                  className={cn(
-                    'flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-start',
-                    activeTab === tab.id
-                      ? 'bg-gradient-to-r from-cyan-500/15 to-purple-500/10 text-cyan-400 border border-cyan-500/20 shadow-sm shadow-cyan-500/5'
-                      : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04] border border-transparent'
-                  )}
-                >
-                  {tab.icon}
-                  <span>{t(tab.key)}</span>
-                </button>
-              ))}
+              {tabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => { setActiveTab(tab.id); clearMessages(); }}
+                    className={cn(
+                      'flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-start relative cursor-pointer',
+                      isActive ? 'text-cyan-300 font-semibold' : 'text-white/50 hover:text-white/80 hover:bg-white/[0.03]'
+                    )}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeSettingsTab"
+                        className="absolute inset-0 bg-gradient-to-r from-cyan-500/15 to-purple-500/10 border-s-2 border-cyan-400 rounded-xl"
+                        transition={{ type: 'spring' as const, stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10 flex items-center gap-2.5">
+                      {tab.icon}
+                      <span>{t(tab.key)}</span>
+                    </span>
+                  </button>
+                );
+              })}
             </nav>
 
             {/* Tab Content */}
@@ -541,7 +558,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </>
   );

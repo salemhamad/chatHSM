@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useRef } from 'react';
 import { Image, Camera, File, Mic, Globe } from 'lucide-react';
 import { useUIStore } from '../../stores/uiStore';
@@ -5,6 +7,7 @@ import { useChatStore } from '../../stores/chatStore';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import { useTranslation } from '../../hooks/useTranslation';
 import { cn } from '../../lib/utils';
+import { motion } from 'framer-motion';
 
 export const AttachmentMenu: React.FC = () => {
   const { toggleWebSearch, webSearchEnabled, closeAttachmentMenu } = useUIStore();
@@ -27,8 +30,8 @@ export const AttachmentMenu: React.FC = () => {
       icon: Image,
       label: t('input.uploadImage'),
       onClick: () => imageInputRef.current?.click(),
-      color: 'text-blue-400',
-      bg: 'bg-blue-400/10 group-hover:bg-blue-400/20'
+      color: 'text-cyan-400',
+      bg: 'bg-cyan-400/10 group-hover:bg-cyan-400/20'
     },
     {
       icon: Camera,
@@ -36,15 +39,15 @@ export const AttachmentMenu: React.FC = () => {
       onClick: () => {
         closeAttachmentMenu();
       },
-      color: 'text-pink-400',
-      bg: 'bg-pink-400/10 group-hover:bg-pink-400/20'
+      color: 'text-purple-400',
+      bg: 'bg-purple-400/10 group-hover:bg-purple-400/20'
     },
     {
       icon: File,
       label: t('input.uploadFile'),
       onClick: () => fileInputRef.current?.click(),
-      color: 'text-green-400',
-      bg: 'bg-green-400/10 group-hover:bg-green-400/20'
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-400/10 group-hover:bg-emerald-400/20'
     },
     {
       icon: Mic,
@@ -53,8 +56,8 @@ export const AttachmentMenu: React.FC = () => {
         startRecording();
         closeAttachmentMenu();
       },
-      color: 'text-red-400',
-      bg: 'bg-red-400/10 group-hover:bg-red-400/20',
+      color: 'text-rose-400',
+      bg: 'bg-rose-400/10 group-hover:bg-rose-400/20',
       disabled: !voiceSupported
     },
     {
@@ -63,8 +66,8 @@ export const AttachmentMenu: React.FC = () => {
       onClick: () => {
         toggleWebSearch();
       },
-      color: webSearchEnabled ? 'text-brand-400' : 'text-gray-400',
-      bg: webSearchEnabled ? 'bg-brand-400/20' : 'bg-gray-400/10 group-hover:bg-gray-400/20',
+      color: webSearchEnabled ? 'text-cyan-400' : 'text-white/40',
+      bg: webSearchEnabled ? 'bg-cyan-400/20' : 'bg-white/5 group-hover:bg-white/10',
       toggle: true,
       active: webSearchEnabled
     }
@@ -88,44 +91,53 @@ export const AttachmentMenu: React.FC = () => {
         multiple 
       />
       
-      {/* Invisible overlay to close menu on outside click */}
+      {/* Invisible overlay for click-away */}
       <div className="fixed inset-0 z-40" onClick={closeAttachmentMenu} />
       
-      <div className="absolute bottom-[calc(100%+12px)] start-0 z-50 min-w-[200px] glass-panel rounded-2xl p-2 animate-slideUp origin-bottom-left shadow-2xl border border-white/10">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+        transition={{ type: 'spring' as const, stiffness: 450, damping: 25 }}
+        className="absolute bottom-[calc(100%+12px)] start-0 z-50 min-w-[210px] bg-[#0c0d12]/95 backdrop-blur-2xl rounded-2xl p-2 shadow-2xl border border-white/[0.08]"
+      >
         <div className="flex flex-col gap-1">
           {menuItems.map((item, idx) => {
             const Icon = item.icon;
             if (item.disabled) return null;
             
             return (
-              <button
+              <motion.button
                 key={idx}
+                whileHover={{ scale: 1.015, x: 2 }}
+                whileTap={{ scale: 0.985 }}
                 onClick={item.onClick}
                 className={cn(
-                  "flex items-center gap-3 p-2 rounded-xl text-sm transition-all group",
-                  "hover:bg-white/10 text-white/80 hover:text-white"
+                  "flex items-center gap-3 p-2 rounded-xl text-sm transition-colors group cursor-pointer",
+                  "hover:bg-white/[0.04] text-white/80 hover:text-white"
                 )}
               >
                 <div className={cn("p-2 rounded-lg transition-colors", item.bg)}>
                   <Icon className={cn("w-4 h-4", item.color)} />
                 </div>
-                <span className="font-medium flex-1 text-start">{item.label}</span>
+                <span className="font-semibold flex-1 text-start text-xs">{item.label}</span>
                 {item.toggle && (
                   <div className={cn(
-                    "w-8 h-4 rounded-full transition-colors relative",
-                    item.active ? "bg-brand-500" : "bg-white/20"
+                    "w-8 h-4.5 rounded-full transition-colors relative border border-white/5",
+                    item.active ? "bg-cyan-500" : "bg-white/10"
                   )}>
-                    <div className={cn(
-                      "absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform",
-                      item.active ? "start-[18px]" : "start-0.5"
-                    )} />
+                    <motion.div 
+                      animate={{ x: item.active ? 16 : 2 }}
+                      transition={{ type: 'spring' as const, stiffness: 500, damping: 25 }}
+                      className="absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white shadow-sm" 
+                    />
                   </div>
                 )}
-              </button>
+              </motion.button>
             );
           })}
         </div>
-      </div>
+      </motion.div>
     </>
   );
 };
