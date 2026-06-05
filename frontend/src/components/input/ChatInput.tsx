@@ -2,9 +2,12 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Send, Plus, Loader2, AlertCircle, Mic } from 'lucide-react';
 import { useChatStore } from '../../stores/chatStore';
 import { useUIStore } from '../../stores/uiStore';
+import { usePrefetchStore } from '../../stores/prefetchStore';
 import { useTranslation } from '../../hooks/useTranslation';
+import { usePrefetch } from '../../hooks/usePrefetch';
 import { AttachmentMenu } from './AttachmentMenu';
 import { AttachmentPreview } from './AttachmentPreview';
+import { PrefetchIndicator } from './PrefetchIndicator';
 import { VoiceRecorder } from './VoiceRecorder';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import { cn } from '../../lib/utils';
@@ -13,10 +16,13 @@ export const ChatInput: React.FC = () => {
   const [content, setContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { sendMessage, isStreaming, pendingAttachments } = useChatStore();
+  const { sendMessage, isStreaming, pendingAttachments, activeConversationId } = useChatStore();
   const { attachmentMenuOpen, toggleAttachmentMenu, isRecording } = useUIStore();
   const { startRecording } = useVoiceRecorder();
   const { t } = useTranslation();
+
+  // Predictive pre-fetching integration
+  const { onDraftChange, cancelPrefetch, status: prefetchStatus } = usePrefetch(activeConversationId);
 
   const adjustTextareaHeight = () => {
     const textarea = textareaRef.current;
@@ -30,10 +36,17 @@ export const ChatInput: React.FC = () => {
     adjustTextareaHeight();
   }, [content]);
 
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setContent(newValue);
+    // Notify the prefetch hook of the draft change
+    onDraftChange(newValue);
+  };
+
   const handleSend = async () => {
     if (!content.trim() && pendingAttachments.length === 0) return;
     if (isStreaming) return;
-    
+
     setError(null);
     const textToSend = content;
     setContent('');
@@ -41,8 +54,25 @@ export const ChatInput: React.FC = () => {
       textareaRef.current.style.height = 'auto';
     }
 
+    // Attempt to consume any ready prefetch result
+    const prefetchResult = usePrefetchStore.getState().consumeResult();
+    // Cancel any in-flight prefetch
+    cancelPrefetch();
+
     try {
-      await sendMessage(textToSend);
+      // Merge prefetch context into the send request
+      const sendOptions: {
+        webSearch?: boolean;
+        prefetchContext?: string;
+        prefetchRequestId?: string;
+      } = {};
+
+      if (prefetchResult && prefetchResult.context) {
+        sendOptions.prefetchContext = prefetchResult.context;
+        sendOptions.prefetchRequestId = prefetchResult.requestId;
+      }
+
+      await sendMessage(textToSend, sendOptions);
     } catch (err) {
       setError(t('input.errorSend'));
       setContent(textToSend);
@@ -67,14 +97,14 @@ export const ChatInput: React.FC = () => {
   return (
     <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#0b0c10] via-[#0b0c10]/90 to-transparent pt-12 pb-6 px-4 md:px-8 pointer-events-none z-20">
       <div className="max-w-3xl mx-auto w-full pointer-events-auto relative">
-        
+
         {/* Error State */}
         {error && (
           <div className="absolute -top-12 inset-x-0 flex justify-center animate-fadeIn">
             <div className="bg-red-500/10 border border-red-500/20 backdrop-blur-md text-red-200 px-4 py-2 rounded-xl text-sm flex items-center gap-3 shadow-lg">
               <AlertCircle className="w-4 h-4" />
               <span>{error}</span>
-              <button 
+              <button
                 onClick={handleRetry}
                 className="text-xs font-semibold bg-red-500/20 hover:bg-red-500/30 px-2 py-1 rounded transition-colors"
               >
@@ -99,10 +129,10 @@ export const ChatInput: React.FC = () => {
           "w-full rounded-3xl p-[2px] animate-rgb-glow shadow-[0_0_20px_rgba(0,255,213,0.15)]",
           showSend && "active-glow"
         )}>
-          
+
           {/* Inner container */}
           <div className="w-full min-h-[93px] bg-[#161922] rounded-[22px] flex items-end gap-3 px-4 py-3 box-border">
-            
+
             {/* Attachment (+) menu toggle button */}
             <div className="relative shrink-0 mb-1">
               <button
@@ -121,7 +151,7 @@ export const ChatInput: React.FC = () => {
             <textarea
               ref={textareaRef}
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={handleContentChange}
               onKeyDown={handleKeyDown}
               dir="auto"
               placeholder={t('input.placeholder')}
@@ -151,8 +181,8 @@ export const ChatInput: React.FC = () => {
                 disabled={isStreaming || isRecording}
                 className={cn(
                   "absolute inset-0 rounded-xl text-black flex items-center justify-center transition-all duration-300 transform active:scale-95",
-                  showSend 
-                    ? "opacity-100 scale-100 rotate-0 bg-cyan-500 hover:bg-cyan-400 shadow-lg shadow-cyan-500/20" 
+                  showSend
+                    ? "opacity-100 scale-100 rotate-0 bg-cyan-500 hover:bg-cyan-400 shadow-lg shadow-cyan-500/20"
                     : "opacity-0 scale-75 pointer-events-none -rotate-90 bg-gray-800"
                 )}
                 title={t('input.send')}
@@ -167,9 +197,13 @@ export const ChatInput: React.FC = () => {
 
           </div>
         </div>
-        
-        <div className="text-center mt-2 text-[10px] text-white/20">
-          {t('input.disclaimer')}
+
+        {/* Footer row: Prefetch indicator + Disclaimer */}
+        <div className="flex items-center justify-between mt-2 px-1">
+          <PrefetchIndicator status={prefetchStatus} />
+          <div className="text-[10px] text-white/20">
+            {t('input.disclaimer')}
+          </div>
         </div>
       </div>
     </div>

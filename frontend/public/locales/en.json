@@ -64,7 +64,19 @@
     "errorSend": "Failed to send message. Please check your connection.",
     "retry": "Retry",
     "disclaimer": "AI can make mistakes. Check important info.",
-    "speakNow": "Speak now..."
+    "speakNow": "Speak now...",
+    "suggestSummarize": "Summarize",
+    "suggestExplain": "Explain more",
+    "suggestExample": "Give example",
+    "suggestToCode": "Convert to code",
+    "suggestForDev": "Format for devs",
+    "suggestAdvanced": "Add advanced features",
+    "suggestSummarizePrompt": "Summarize the following answer:",
+    "suggestExplainPrompt": "Explain the following answer in more detail:",
+    "suggestExamplePrompt": "Give a practical example of the following answer:",
+    "suggestToCodePrompt": "Convert the following answer into production code:",
+    "suggestForDevPrompt": "Restructure the following answer for a developer audience:",
+    "suggestAdvancedPrompt": "Expand the following answer with advanced features:"
   },
   "settings": {
     "title": "Settings",

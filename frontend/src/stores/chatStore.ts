@@ -14,7 +14,7 @@ interface ChatStore extends ChatState {
   updateStreamingContent: (content: string) => void;
   
   createConversation: (title?: string) => Promise<string>;
-  sendMessage: (content: string, options?: { webSearch?: boolean }) => Promise<void>;
+  sendMessage: (content: string, options?: { webSearch?: boolean; prefetchContext?: string; prefetchRequestId?: string }) => Promise<void>;
   retryMessage: (content: string) => Promise<void>;
   stopGenerating: () => void;
   pinMessage: (id: string) => Promise<void>;
@@ -145,7 +145,7 @@ export const useChatStore = create<ChatStore>()(
         }
       },
 
-      sendMessage: async (content, options) => {
+      sendMessage: async (content, options?: { webSearch?: boolean; prefetchContext?: string; prefetchRequestId?: string }) => {
         const token = await ensureAuth();
         const { activeConversationId, createConversation, addMessage, setIsStreaming, updateStreamingContent, pendingAttachments } = get();
         
@@ -232,6 +232,8 @@ export const useChatStore = create<ChatStore>()(
               message: content,
               attachmentIds,
               webSearch: !!options?.webSearch,
+              prefetchContext: options?.prefetchContext || null,
+              prefetchRequestId: options?.prefetchRequestId || null,
             }),
             signal: activeAbortController.signal,
           });

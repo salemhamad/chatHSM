@@ -55,7 +55,7 @@ export const Sidebar: React.FC = () => {
       {/* Sidebar Panel */}
       <aside 
         className={cn(
-          'fixed md:static inset-y-0 start-0 z-50 w-[280px] flex flex-col h-[100dvh] transition-transform duration-300 ease-in-out bg-[#0b0c10] border-r border-gray-800 border-y-0 border-l-0 shrink-0 select-none',
+          'fixed md:static inset-y-0 start-0 z-50 w-[280px] flex flex-col h-[100dvh] transition-transform duration-300 ease-in-out glass-panel border-r border-gray-800 border-y-0 border-l-0 shrink-0 select-none',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0 rtl:translate-x-full rtl:md:translate-x-0 md:w-0 md:opacity-0 md:overflow-hidden md:border-none'
         )}
       >

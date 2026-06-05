@@ -64,7 +64,19 @@
     "errorSend": "فشل إرسال الرسالة. يرجى التحقق من اتصالك.",
     "retry": "إعادة المحاولة",
     "disclaimer": "قد يخطئ الذكاء الاصطناعي. يرجى التحقق من المعلومات المهمة.",
-    "speakNow": "تحدث الآن..."
+    "speakNow": "تحدث الآن...",
+    "suggestSummarize": "اختصر الجواب",
+    "suggestExplain": "اشرح أكثر",
+    "suggestExample": "أعطني مثال",
+    "suggestToCode": "حوله إلى كود",
+    "suggestForDev": "رتّبه للمطور",
+    "suggestAdvanced": "أضف ميزات متقدمة",
+    "suggestSummarizePrompt": "اختصر الجواب التالي:",
+    "suggestExplainPrompt": "اشرح أكثر عن الإجابة التالية:",
+    "suggestExamplePrompt": "أعطني مثالاً على ما ذُكر في الإجابة التالية:",
+    "suggestToCodePrompt": "حول الإجابة التالية إلى كود برمجي:",
+    "suggestForDevPrompt": "رتّب الإجابة التالية لتكون مفيدة للمطور:",
+    "suggestAdvancedPrompt": "أضف ميزات متقدمة إلى الإجابة التالية:"
   },
   "settings": {
     "title": "الإعدادات",

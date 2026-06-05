@@ -4,6 +4,8 @@ import { Inter, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import { useI18nStore } from "../stores/i18nStore";
 import { useEffect, useState } from "react";
+import VideoBackground from "../components/VideoBackground";
+import ToggleSidebarButton from "../components/sidebar/ToggleSidebarButton";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -40,14 +42,18 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
         <meta name="description" content="ChatHSM - Private & Secure Advanced AI Assistant" />
         <meta name="theme-color" content="#06b6d4" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/apple-icon.png" />
         <title>ChatHSM - AI Assistant</title>
       </head>
       <body
         className={`${inter.variable} ${arabic.variable} font-sans antialiased text-foreground min-h-[100dvh] flex flex-col`}
         style={{ fontFamily: fontStyle }}
       >
+        <VideoBackground />
+        <ToggleSidebarButton />
         {mounted && isInitialized ? children : <div className="flex-1 bg-[#0a0a0f]"></div>}
       </body>
     </html>
