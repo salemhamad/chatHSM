@@ -114,6 +114,9 @@ export class AiController {
         webSearch,
       );
 
+      const { detectMessageType, getSuggestedActions, isAnswerLikelyOffTopic } = await import('./ai-chat-engine');
+      const messageType = detectMessageType(userMessageContent);
+
       // 4. Subscribe to the stream and push events to the Express response
       const subscription = stream$.subscribe({
         next: (chunk) => {
@@ -136,17 +139,23 @@ export class AiController {
           res.end();
         },
         complete: async () => {
+          let finalContent = fullAiResponse;
+          if (isAnswerLikelyOffTopic(userMessageContent, fullAiResponse)) {
+            finalContent = Buffer.from('2YTZgSDYo9mB2YfZhSDZgti12K/ZgyDYqNiv2YLYqS4g2YXZhdmD2YYg2KrZiNi22K0g2LPYpNin2YTZgyDYo9mD2KvYsdif', 'base64').toString('utf8');
+          }
+
           // 5. Update the placeholder in the DB with the full completed content
           await this.messagesService.prisma.message.update({
             where: { id: aiMessagePlaceholder.id },
             data: {
-              content: fullAiResponse,
+              content: finalContent,
               isStreaming: false,
             },
           });
 
-          // Send done event and close response
-          res.write(`data: ${JSON.stringify({ type: 'done', messageId: aiMessagePlaceholder.id })}\n\n`);
+          // Send done event with suggestedActions and close response
+          const suggested = getSuggestedActions(messageType);
+          res.write(`data: ${JSON.stringify({ type: 'done', messageId: aiMessagePlaceholder.id, suggestedActions: suggested })}\n\n`);
           res.end();
         },
       });

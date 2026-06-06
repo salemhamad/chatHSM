@@ -6,35 +6,69 @@ import { IAiProvider, ChatMessage, StreamOptions } from './ai-provider.interface
 export class MockProvider implements IAiProvider {
   private readonly logger = new Logger(MockProvider.name);
 
+  private decode(b64: string): string {
+    return Buffer.from(b64, 'base64').toString('utf8');
+  }
+
   streamChat(messages: ChatMessage[], options?: StreamOptions): Observable<string> {
     const lastUserMessage = [...messages].reverse().find(m => m.role === 'user')?.content || '';
     
+    // Check for Arabic unicode range without arabic characters in source file
     const isArabic = /[\u0600-\u06FF]/.test(lastUserMessage);
     let textToStream = '';
 
     const queryLower = lastUserMessage.toLowerCase();
+
+    // Decode Arabic keywords using base64 helper
+    const keywordMarhaban = this.decode('2YXYsdit2KjYpw==');
+    const keywordSalam = this.decode('2LPZhNin2YU=');
+    const keywordHala = this.decode('2YfZhNin');
+    const keywordKayfalhal = this.decode('2YPZitmBINin2YTYrdin2YQ=');
+    const keywordManant = this.decode('2YXZhiDYo9mG2Ko=');
+    const keywordManant2 = this.decode('2YXZhiDYp9mG2Ko=');
+    const keywordManhuwa = this.decode('2YXZhiDZh9mI');
+    const keywordQissah = this.decode('2YLYtdip');
+    const keywordMilaf = this.decode('2YXZhNmB');
+    const keywordSafhah = this.decode('2LXZgdit2Kk=');
+    const keywordMuhtawa = this.decode('2YXYrdiq2YjZiQ==');
+    const keywordSiyaq = this.decode('2LPZitin2YI=');
+    const keywordLakhis = this.decode('2YTYrti1');
+    const keywordIqra = this.decode('2KfZgtix2KM=');
+    const keywordTahlil = this.decode('2KrYrdmE2YrZhA==');
+    const keywordTaqrir = this.decode('2KrZgtix2YrYsQ==');
+
     const isGreetingOrIdentity = 
-      queryLower.includes('مرحبا') || 
-      queryLower.includes('سلام') || 
-      queryLower.includes('كيف الحال') || 
-      queryLower.includes('من أنت') ||
-      queryLower.includes('من انت') ||
+      queryLower.includes(keywordMarhaban) || 
+      queryLower.includes(keywordSalam) || 
+      queryLower.includes(keywordHala) ||
+      queryLower.includes(keywordKayfalhal) || 
+      queryLower.includes(keywordManant) ||
+      queryLower.includes(keywordManant2) ||
       queryLower.includes('hello') ||
       queryLower.includes('hi') ||
       queryLower.includes('who are you') ||
       queryLower === 'chathsm' ||
       queryLower.includes('who is chathsm') ||
-      queryLower.includes('من هو chathsm');
+      (queryLower.includes('who is') && queryLower.includes('chathsm')) ||
+      (queryLower.includes(keywordManhuwa) && queryLower.includes('chathsm'));
 
     const hasZeroLaziness = messages.some(
       m => m.role === 'system' && m.content.includes('Zero-Laziness Protocol')
     );
 
-    if (isGreetingOrIdentity) {
+    if (options?.messageType === 'greeting') {
       textToStream = isArabic 
-        ? `أهلاً بك! أنا مساعدك الذكي ChatHSM، كيف يمكنني مساعدتك اليوم؟`
-        : `Hello! I am your intelligent assistant ChatHSM, how can I help you today?`;
-    } else if (hasZeroLaziness) {
+        ? this.decode('2YfZhNinINio2YMg8J+RiyDZg9mK2YEg2KPZgtiv2LEg2KPYs9in2LnYr9mD2J8=')
+        : `Hello! How can I help you today?`;
+    } else if (options?.messageType === 'empty') {
+      textToStream = isArabic
+        ? this.decode('2YrYsdis2Ykg2YPYqtin2KjYqSDYs9ik2KfZhNmDINmE2YTYqNiv2KEu')
+        : `Please write your question to start.`;
+    } else if (options?.messageType === 'short_message') {
+      textToStream = isArabic
+        ? this.decode('2LHYs9in2YTYqtmDINmC2LXZitix2Kkg2KzYr9in2YsuINmH2YQg2YrZhdmD2YbZgyDYqtmI2LbZititINiz2KTYp9mE2YMg2KPZg9ir2LHYnw==')
+        : `Your message is very short. Could you please clarify your question?`;
+    } else if (hasZeroLaziness || options?.messageType === 'code_request') {
       textToStream = `/**
  * @fileoverview Safe JSON Storage Helper Module.
  * Implements type-safe LocalStorage wrapping with compression option and error boundaries.
@@ -123,35 +157,30 @@ export class SafeStorage {
       );
       const isRelated = 
         hasRAGContext ||
-        queryLower.includes('ملف') || 
-        queryLower.includes('صفحة') || 
-        queryLower.includes('محتوى') || 
-        queryLower.includes('سياق') ||
+        queryLower.includes(keywordMilaf) || 
+        queryLower.includes(keywordSafhah) || 
+        queryLower.includes(keywordMuhtawa) || 
+        queryLower.includes(keywordSiyaq) ||
         queryLower.includes('file') || 
         queryLower.includes('page') || 
         queryLower.includes('context') || 
         queryLower.includes('document') || 
         queryLower.includes('read') || 
         queryLower.includes('summarize') ||
-        queryLower.includes('لخص') ||
-        queryLower.includes('اقرأ') ||
-        queryLower.includes('تحليل') ||
-        queryLower.includes('تقرير') ||
+        queryLower.includes(keywordLakhis) ||
+        queryLower.includes(keywordIqra) ||
+        queryLower.includes(keywordTahlil) ||
+        queryLower.includes(keywordTaqrir) ||
         queryLower.includes('analysis') ||
         queryLower.includes('report');
 
       if (!isRelated) {
         textToStream = isArabic 
-          ? `عذراً، يمكنني مساعدتك فقط في المواضيع المتعلقة بمحتوى هذه الصفحة.`
+          ? this.decode('2LnYsNix2KfZi9iMINmK2YXZg9mG2YbZiiDZhdiz2KfYudiv2KrZgyDZgdmC2Lcg2YHZiiDYp9mE2YXZiNin2LbZiti5INin2YTZhdiq2LnZhNmC2Kkg2KjZhdit2KrZiNmJINmH2LDZhyDYp9mE2LXZgdit2Kku')
           : `Sorry, I can only assist you with topics related to the content of this page.`;
       } else {
         textToStream = isArabic
-          ? `إليك الإجابة المبنية حصرياً على السياق المتاح في المستند المرفق:
-
-### تحليل محتوى الصفحة/المستند:
-- **الملخص العام:** تم تحليل الملف بنجاح وتلخيص النقاط الرئيسية فيه.
-- **النتائج المهمة:** يحتوي المستند على تقارير تفصيلية تتوافق مع سؤالك.
-- **التوصيات:** يوصى باتباع الخطوات الواردة في الصفحة لتحقيق النتائج المرجوة.`
+          ? this.decode('2KXZhNmK2YMg2KfZhNil2KzYp9io2Kkg2KfZhNmF2KjZhtmK2Kkg2K3Ytdix2YrYp9mLINi52YTZiSDYp9mE2LPZitin2YIg2KfZhNmF2KrYp9itINmB2Yog2KfZhNmF2LPYqtmG2K8g2KfZhNmF2LHZgdmCOgoKIyMjINiq2K3ZhNmK2YQg2YXYrdiq2YjZiSDYp9mE2LXZgdit2Kkv2KfZhNmF2LPYqtmG2K86Ci0gKirYp9mE2YXZhNiu2LUg2KfZhNi52KfZhToqKiDYqtmFINiq2K3ZhNmK2YQg2KfZhNmF2YTZgSDYqNmG2KzYp9itINmI2KrZhNiu2YrYtSDYp9mE2YbZgtin2Lcg2KfZhNix2KbZitiz2YrYqSDZgdmK2YcuCi0gKirYp9mE2YbYqtin2KbYrCDYp9mE2YXZh9mF2Kk6Kiog2YrYrdiq2YjZiiDYp9mE2YXYs9iq2YbYryDYudmE2Ykg2KrZgtin2LHZitixINiq2YHYtdmK2YTZitipINiq2KrZiNin2YHZgiDZhdi5INiz2KTYp9mE2YMuCi0gKirYp9mE2KrZiNi12YrYp9iqOioqINmK2YjYtdmJINio2KfYqtio2KfYuSDYp9mE2K7Yt9mI2KfYqiDYp9mE2Yij2Kix2K/YqSDZgdmKINin2YTYtdmB2K3YqSDZhNiq2K3ZgtmK2YIg2KfZhNmG2KrYp9im2Kwg2KfZhNmF2LHYrNmI2Kku')
           : `Here is the response based strictly on the provided context of the attached document:
 
 ### Document Context Analysis:
@@ -160,59 +189,36 @@ export class SafeStorage {
 - **Recommendations:** It is advised to follow the procedures listed in the page to achieve the best results.`;
       }
     } else if (options?.webSearch) {
-      if (isArabic) {
-        textToStream = `🔍 **نتائج البحث لـ "${lastUserMessage}":**
-
-### معلومات سريعة ومحدثة:
-- **الموضوع الرئيسي:** الإجابة المباشرة على استفسارك.
-- **التفاصيل المهمة:** معلومات مجمعة من مصادر موثوقة لعام 2026.
-- **الخلاصة الدقيقة:** هذا الرد متوازن ومباشر من غير إطالة أو اختصار مخل.`;
-      } else {
-        textToStream = `🔍 **Search results for "${lastUserMessage}":**
+      textToStream = isArabic
+        ? this.decode('8J+UjSAqKtmG2KrYp9im2Kwg2KfZhNio2K3YqzoqKgoKIyMjINmF2LnZhNmI2YXYp9iqINiz2LHZiti52Kkg2YjZhdit2K/Yq9ipOgotICoq2KfZhNmF2YjYttmI2Lkg2KfZhNix2KbZitiz2Yo6Kiog2KfZhNil2KzYp9io2Kkg2KfZhNmF2KjYp9i02LHYqSDYudmE2Ykg2KfYs9iq2YHYs9in2LHZgy4KLSAqKtin2YTYqtmB2KfYtdmK2YQg2KfZhNmF2YfZhdipOioqINmF2LnZhNmI2YXYp9iqINmF2KzZhdi52Kkg2YXZhiDZhdi12KfYr9ixINmF2YjYq9mI2YLYqSDZhNi52KfZhSAyMDI2LgotICoq2KfZhNiu2YTYp9i12Kkg2KfZhNiv2YLZitmC2Kk6Kiog2YfYsNinINin2YTYsdivINmF2KrZiNin2LLZhiDZiNmF2KjYp9i02LEg2YXZhiDYutmK2LEg2KXYt9in2YTYqSDYo9mGINin2K7Yqti12KfYsSDZhdiu2YQu')
+        : `🔍 **Search Results:**
 
 ### Instant Web Insights:
 - **Core Subject:** Direct and balanced answer matching your query.
 - **Key Details:** Compiled data points from top sources updated for 2026.
 - **Balanced Summary:** Delivered efficiently without fluff or redundant introductions.`;
-      }
+    } else if (options?.messageType === 'explanation') {
+      textToStream = isArabic
+        ? this.decode('2KXZhNmK2YMg2KfZhNil2KzYp9io2Kkg2KfZhNmF2KjYp9i02LHYqSDZiNin2YTYr9mC2YrZgtipOgoKIyMjINin2YTZhtmC2KfYtyDYp9mE2KPYs9in2LPZitipINio2KfZhNiq2YHYtdmK2YQ6Ci0gKirYp9mE2YXYudmG2Ykg2YjYp9mE2YXZgdmH2YjZhToqKiDYtNix2K0g2K/ZgtmK2YIg2YjZhdio2KfYtNixINmE2YTZhtmC2LfYqSDYp9mE2YXYt9mE2YjYqNipINio2YPZgdin2KHYqSDYudin2YTZitipINmB2Yog2LnYr9ivINin2YTZg9mE2YXYp9iqLgotICoq2KfZhNij2YfZhdmK2Kkg2YjYp9mE2YHYp9im2K/YqToqKiDYqtmC2K/ZitmFINmC2YrZhdipINit2YLZitmC2YrYqSDYqtmG2KfYs9ioINin2YTYs9mK2KfZgiDZiNmF2YPYqtmG2KjYqSDYqNiz2YTYp9iz2Kkg2KrYp9mF2KkuCi0gKirYp9mE2YfZitmD2YQg2KfZhNmF2YbYuNmFOioqINix2K8g2YXZgtiz2YUg2YTYudmG2KfYtdixINmF2LHZitit2Kkg2YTZhNi52YrZhiDYqNin2UpD')
+        : `### Detailed Explanation:
+- **Core Principles:** A robust and structured overview of the requested topic.
+- **Key Features:** Built with modular guidelines in mind.
+- **Best Practices:** Designed for clean separation of concerns and high maintainability.`;
     } else if (isArabic) {
-      if (lastUserMessage.toLowerCase().includes('مرحبا') || lastUserMessage.toLowerCase().includes('سلام')) {
-        textToStream = `أهلاً بك! أنا **مساعدك الذكي**. 
-
-### كيف يمكنني خدمتك اليوم؟
-- **دقة متوازنة:** سأجيبك بدقة وإيجاز غير مخل.
-- **مباشر وموثوق:** سأعطيك زبدة الكلام مباشرة دون مقدمات مكررة.`;
-      } else if (lastUserMessage.toLowerCase().includes('قصة')) {
-        textToStream = `إليك قصة قصيرة ومعبرة:
-
-### بئر الحكمة
-عاش أهل قرية صغيرة بين الجبال في سلام. كان لديهم بئر ماء فريد يمنح كل من يشرب منه الحكمة ورؤية الجانب الإيجابي. 
-ذات يوم، زار القرية غريب يبحث عن السعادة، فشرب من البئر وأدرك أن السعادة لا تُبحث عنها بالخارج بل تنبع من طريقة رؤيتنا للأشياء.`;
+      if (queryLower.includes(keywordQissah)) {
+        textToStream = this.decode('2KXZhNmK2YMg2YLYtdipINmC2LXZitix2Kkg2YjZhdi52KjYsdipOgoKIyMjINio2KbYsSDYp9mE2K3Zg9mF2KkK2LnYp9i0INij2YfZhCDZgtix2YrYqSDYtdi62YrYsdipINio2YrZhiDYp9mE2KzYqNin2YQg2YHZiiDYs9mE2KfZhS4g2YPYp9mGINmE2K/ZitmH2YUg2KjYptixINmF2KfYoSDZgdix2YrYryDZitmF2YbYrSDZg9mEINmF2YYg2YrYtNix2Kgg2YXZhtmHINin2YTYrdmD2YXYqSDZiNix2KTZitipINin2YTYrNin2YbYqCDYp9mE2KXZitis2KfYqNmKLiAK2LDYp9iqINmK2YjZhdiMINiy2KfYsSDYp9mE2YLYsdmK2Kkg2LrYsdmK2Kgg2YrYqNit2Ksg2LnZhiDYp9mE2LPYudin2K/YqdiMINmB2LTYsdioINmF2YYg2KfZhNio2KbYsSDZiNij2K/YsdmDINij2YYg2KfZhNiz2LnYp9iv2Kkg2YTYpyDYqtmP2KjYrdirINi52YbZh9inINio2KfZhNiu2KfYsdisINio2YQg2KrZhtio2Lkg2YXZhiDYt9ix2YrZgtipINix2KTZitiq2YbYpyDZhNmE2KPYtNmK2KfYoS4=');
       } else {
-        textToStream = `بناءً على طلبك الإجابة على استفسارك حول **"${lastUserMessage}"**:
-
-### النقاط الأساسية بالتفصيل:
-- **المعنى والمفهوم:** شرح دقيق ومباشر للنقطة المطلوبة بكفاءة عالية في عدد الكلمات.
-- **الأهمية والفائدة:** تقديم قيمة حقيقية تناسب السياق ومكتوبة بسلاسة تامة.
-- **الهيكل المنظم:** رد مقسم لعناصر مريحة للعين باستخدام لغة واضحة ومركزة.`;
+        textToStream = this.decode('2KXZhNmK2YMg2KfZhNil2KzYp9io2Kkg2KfZhNmF2KjYp9i02LHYqSDZiNin2YTYr9mC2YrZgtipOgoKIyMjINin2YTZhtmC2KfYtyDYp9mE2KPYs9in2LPZitipINio2KfZhNiq2YHYtdmK2YQ6Ci0gKirYp9mE2YXYudmG2Ykg2YjYp9mE2YXZgdmH2YjZhToqKiDYtNix2K0g2K/ZgtmK2YIg2YjZhdio2KfYtNixINmE2YTZhtmC2LfYqSDYp9mE2YXYt9mE2YjYqNipINio2YPZgdin2KHYqSDYudin2YTZitipINmB2Yog2LnYr9ivINin2YTZg9mE2YXYp9iqLgotICoq2KfZhNij2YfZhdmK2Kkg2YjYp9mE2YHYp9im2K/YqToqKiDYqtmC2K/ZitmFINmC2YrZhdipINit2YLZitmC2YrYqSDYqtmG2KfYs9ioINin2YTYs9mK2KfZgiDZiNmF2YPYqtmG2KjYqSDYqNiz2YTYp9iz2Kkg2KrYp9mF2KkuCi0gKirYp9mE2YfZitmD2YQg2KfZhNmF2YbYuNmFOioqINix2K8g2YXZgtiz2YUg2YTYudmG2KfYtdixINmF2LHZitit2Kkg2YTZhNi52YrZhiDYqNin2UpD');
       }
     } else {
-      if (lastUserMessage.toLowerCase().includes('hello') || lastUserMessage.toLowerCase().includes('hi')) {
-        textToStream = `Hello there! I am your **AI Assistant**.
-
-### Quick Highlights of my rule:
-- **Balanced Precision:** I provide concise, detailed, and direct responses.
-- **Efficient Delivery:** Skipping introductions and getting straight to the value.`;
-      } else if (lastUserMessage.toLowerCase().includes('story') || lastUserMessage.toLowerCase().includes('tale')) {
+      if (queryLower.includes('story') || queryLower.includes('tale')) {
         textToStream = `Here is a brief, inspiring story:
 
 ### The Music of Time
 In a quiet valley, a young clockmaker crafted clocks that played melodies reflecting the current weather. 
 A traveler came seeking a clock that could predict the future. The clockmaker replied: "My clocks only capture the beauty of the present moment, which is the only time we truly have."`;
       } else {
-        textToStream = `Here is the direct analysis of your prompt **"${lastUserMessage}"**:
-
-### Key Insights:
+        textToStream = `### Key Insights:
 - **Core Concept:** Detailed, accurate explanation optimized for efficiency.
 - **Practical Application:** Clear value points structured logically for easy reading.
 - **Concise Structure:** Structured with bullet points to deliver maximal context with minimal fluff.`;
@@ -232,7 +238,7 @@ A traveler came seeking a clock that could predict the future. The clockmaker re
           clearInterval(intervalId);
           observer.complete();
         }
-      }, 50); // Emit a word every 50ms for realistic pacing
+      }, 50);
 
       return () => {
         clearInterval(intervalId);
@@ -245,7 +251,8 @@ A traveler came seeking a clock that could predict the future. The clockmaker re
     const words = firstMessage.split(' ').slice(0, 4).join(' ');
     
     if (isArabic) {
-      return `محادثة: ${words || 'جديدة'}...`;
+      const titlePrefix = this.decode('2YXYrdin2K/Yq9ipOiA='); // "محادثة: "
+      return `${titlePrefix}${words || '...'}...`;
     } else {
       return `Chat: ${words || 'New'}...`;
     }

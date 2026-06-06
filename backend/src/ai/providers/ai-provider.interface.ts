@@ -9,6 +9,7 @@ export interface StreamOptions {
   webSearch?: boolean;
   temperature?: number;
   strictContext?: boolean;
+  messageType?: string;
 }
 
 export interface IAiProvider {
