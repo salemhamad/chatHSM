@@ -1,6 +1,9 @@
 const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
-    return `${window.location.protocol}//${window.location.hostname}:3001/api`;
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:3001/api';
+    }
+    return `${window.location.origin}/api`;
   }
   return 'http://localhost:3001/api';
 };
