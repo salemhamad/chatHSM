@@ -8,125 +8,201 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  passwordHash  String
-  displayName   String?
-  avatarUrl     String?
-  language      String         @default("en")
-  plan          String         @default("FREE") // "FREE", "PRO", "VIP"
-  
+  id           String  @id @default(uuid())
+  email        String  @unique
+  passwordHash String
+  displayName  String?
+  avatarUrl    String?
+  language     String  @default("en")
+  plan         String  @default("FREE") // "FREE", "PRO", "VIP"
+
   // Rate limiting
-  dailyTokensUsed   Int        @default(0)
-  dailyTokensLimit  Int        @default(100000)
-  lastTokenReset    DateTime   @default(now())
-  
+  dailyTokensUsed  Int      @default(0)
+  dailyTokensLimit Int      @default(100000)
+  lastTokenReset   DateTime @default(now())
+
   conversations Conversation[]
   messages      Message[]
   pinnedItems   PinnedItem[]
-  
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  documents     Document[]
+  memories      UserMemory[]
+  evaluations   AiEvaluation[]
+  tradingHistory TradingCalculationHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Conversation {
-  id          String     @id @default(uuid())
-  title       String     @default("New Chat")
-  isPinned    Boolean    @default(false)
-  
-  userId      String
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  messages    Message[]
-  
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  
+  id       String  @id @default(uuid())
+  title    String  @default("New Chat")
+  isPinned Boolean @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([userId, updatedAt])
 }
 
 model Message {
-  id              String       @id @default(uuid())
-  role            String       // "USER", "ASSISTANT", "SYSTEM"
-  content         String
-  
+  id      String @id @default(uuid())
+  role    String // "USER", "ASSISTANT", "SYSTEM"
+  content String
+
   // Streaming status
-  isStreaming      Boolean      @default(false)
-  
+  isStreaming Boolean @default(false)
+
   // Token usage
-  promptTokens    Int?
+  promptTokens     Int?
   completionTokens Int?
-  
-  conversationId  String
-  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
-  userId          String
-  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  attachments     Attachment[]
-  pinnedItems     PinnedItem[]
-  
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  attachments Attachment[]
+  pinnedItems PinnedItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([conversationId, createdAt])
 }
 
 model Attachment {
-  id          String         @id @default(uuid())
-  fileName    String
-  fileType    String         // MIME type
-  fileSize    Int            // bytes
-  storageKey  String         // S3/R2 key
-  url         String?        // Pre-signed or public URL
-  
-  messageId   String?
-  message     Message?       @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime       @default(now())
+  id         String  @id @default(uuid())
+  fileName   String
+  fileType   String // MIME type
+  fileSize   Int // bytes
+  storageKey String // S3/R2 key
+  url        String? // Pre-signed or public URL
+
+  messageId String?
+  message   Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }
 
 model PinnedItem {
-  id          String     @id @default(uuid())
-  
-  userId      String
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  messageId   String
-  message     Message    @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime   @default(now())
-  
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
   @@unique([userId, messageId])
 }
 
 model Document {
-  id          String          @id @default(uuid())
-  fileName    String
-  fileType    String
-  fileSize    Int
-  status      String          // "PENDING", "PROCESSED", "ERROR"
-  isEnabled   Boolean         @default(true)
-  chunks      DocumentChunk[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id         String          @id @default(uuid())
+  userId     String?
+  user       User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId  String?
+  title      String?
+  sourceType String          @default("file") // "chat" | "file" | "website" | "manual"
+  language   String          @default("mixed") // "ar" | "en" | "mixed"
+  tags       String? // JSON serialized
+  fileName   String
+  fileType   String
+  fileSize   Int
+  status     String // "PENDING", "PROCESSED", "ERROR"
+  isEnabled  Boolean         @default(true)
+  chunks     DocumentChunk[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
 }
 
 model DocumentChunk {
-  id          String   @id @default(uuid())
-  content     String
-  embedding   String   // Stores JSON-serialized float array (text in SQLite, maps to text/vector in pgvector)
-  documentId  String
-  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  content    String
+  embedding  String // Stores JSON-serialized float array
+  chunkIndex Int      @default(0)
+  metadata   String? // JSON serialized
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
 }
 
 model DirectFact {
-  id          String   @id @default(uuid())
-  content     String
-  embedding   String   // Stores JSON-serialized float array (text in SQLite, maps to text/vector in pgvector)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  content   String
+  embedding String // Stores JSON-serialized float array (text in SQLite, maps to text/vector in pgvector)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+model UserMemory {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memoryKey   String
+  memoryValue String
+  category    String // "preference" | "project" | "writing" | "coding" | "personal_dictionary"
+  confidence  Float    @default(1.0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
+  @@index([userId, category])
+}
+
+model AiAnswerCache {
+  id           String    @id @default(uuid())
+  questionHash String    @unique
+  question     String
+  answer       String
+  modelName    String
+  hitCount     Int       @default(0)
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([questionHash])
+}
+
+model AiEvaluation {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question  String
+  answer    String
+  modelName String
+  rating    String // "positive" | "negative"
+  reason    String?
+  tags      String? // JSON serialized
+  createdAt DateTime @default(now())
+}
+
+model TrainingExample {
+  id           String   @id @default(uuid())
+  input        String
+  output       String
+  taskType     String // "spelling" | "rewrite" | "qa" | "coding" | "summarization"
+  qualityScore Float    @default(0.0)
+  approved     Boolean  @default(false)
+  source       String // "chat" | "admin" | "file"
+  createdAt    DateTime @default(now())
+}
+
+model TradingCalculationHistory {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String   // 'profit_loss', 'risk_reward', 'fibonacci', etc.
+  inputs      String   // JSON string of input parameters
+  results     String   // JSON string of results
+  explanation String
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

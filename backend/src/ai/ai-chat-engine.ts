@@ -100,54 +100,53 @@ export function getResponsePolicy(messageType: MessageType): ResponsePolicy {
     case 'empty':
       return {
         maxTokens: 20,
-        temperature: 0.2,
-        instruction: decodeText('2KXYsNinINmD2KfZhtiqINin2YTYsdiz2KfZhNipINmB2KfYsdi62KnYjCDYpdzZhtmGINmF2KfZgCDZgdmKINin2YTYldiz2KrZg9mB2KfYsdmC2YrZgCDYs9ik2KfZhNmHINmB2YLYty4=') // "إذا كانت الرسالة فارغة، اطلب من المستخدم كتابة سؤاله فقط."
+        temperature: 0.1,
+        instruction: "رسالة فارغة. اطلب من المستخدم كتابة سؤاله."
       };
 
     case 'greeting':
       return {
-        maxTokens: 40,
+        maxTokens: 30,
         temperature: 0.2,
-        instruction: decodeText('2LHYs9in2YTYqSDYp9mE2YXYs9iq2K7Yr9mFINiq2K3ZitipINmB2YLYty4K2LHYryDYqNiq2K3ZitipINmC2LXZitix2Kkg2KzYr9in2YsuCtmE2Kcg2KrYtNix2K0uCtmE2Kcg2KrYudix2LYg2YXZhdmK2LLYp9iqLgrZhNinINiq2YPYqtioINmF2YLYr9mF2Kkg2LfZiNmK2YTYqS4K2YXYq9in2YQg2YXZhtin2LPYqDoKItmH2YTYpyDYqNmDIPCfkYsg2YPZitmBINij2YLYr9ixINij2LPYp9i52K/Zg9ifIg==')
+        instruction: "المستخدم يلقي التحية. رد بترحيب قصير ومختصر جداً، ولا تضف أي تفاصيل أخرى. مثال: أهلاً بك! كيف يمكنني مساعدتك اليوم؟"
       };
 
     case 'short_message':
       return {
-        maxTokens: 80,
+        maxTokens: 100,
         temperature: 0.2,
-        instruction: decodeText('2LHYs9in2YTYqSDYp9mE2YXYs9iq2K7Yr9mFINmC2LXZitix2Kkg2YjYutmK2LEg2YjYp9i22K3YqS4K2LHYryDZgti12YrYsSDYrNiv2KfZiy4K2KXYsNinINmE2YUg2KrZgdmH2YUg2YLYtdiv2YfYjCDYp9iz2KPZhNmHINiz2KTYp9mE2KfZiyDYqtmI2LbZitit2YrYp9mLINmI2KfYrdiv2KfZiyDZgdmC2LcuCtmE2Kcg2KrZg9iq2Kgg2LTYsdit2KfZiyDYt9mI2YrZhNin2Ysu')
+        instruction: "رسالة قصيرة. أجب مباشرة وباختصار شديد. إذا كان سؤالاً بنعم أو لا، ابدأ بـ 'نعم' أو 'لا'. لا تطل الشرح أبداً."
       };
 
     case 'code_request':
       return {
         maxTokens: 1400,
-        temperature: 0.25,
-        instruction: decodeText('2KfZhNmF2LPYqtiu2K/ZhSDZitix2YrYryDZg9mI2K/Yp9mLINij2Ygg2KrYudiv2YrZhNin2Ysg2KjYsdmF2KzZitin2YsuCtij2LnYt9mHINin2YTYrdmDINmF2KjYp9i02LHYqS4K2KfYs9iq2K7Yr9mFINmD2YjYryDZiNin2LbYrSDZiNmF2YbYuNmFLgrYp9mD2KrYqCDYtNix2K3Yp9mLINmF2K7Yqti12LHYp9mLINmC2KjZhCDYp9mE2YPZiNivINij2Ygg2KjYudiv2Ycg2YHZgti3INi52YbYryDYp9mE2K3Yp9is2KkuCtmE2Kcg2KrYutmK2ZHYsSDYt9mE2Kgg2KfZhNmF2LPYqtiu2K/ZhS4=')
+        temperature: 0.1,
+        instruction: "المستخدم يطلب كوداً برمجياً. أعط الكود مباشرة بدون مقدمات طويلة. إذا طلب بناء تطبيق مثل ChatHSM، اشرح أنك تستطيع بناء الواجهة، الخادم، الذكاء الصناعي، لوحة الإدارة، تسجيل الدخول، والمحادثات، واسأله هل يريده تطبيق ويب أو هاتف."
       };
 
     case 'explanation':
       return {
-        maxTokens: 900,
-        temperature: 0.3,
-        instruction: decodeText('2KfZhNmF2LPYqtiu2K/ZhSDZitix2YrYryDYtNix2K3Yp9mLINij2Ygg2YfZhtiv2LPYqSDYo9mIINmF2YjYp9i12YHYp9iqLgrYo9is2Kgg2LnZhNmJINmG2YHYsyDYp9mE2LPYpNin2YQg2YHZgti3LgrYp9is2LnZhCDYp9mE2KzZiNin2Kgg2YXZhti42YXYp9mLOgotINi52YbZiNin2YYg2YjYp9i22K0uCi0g2KPYsdmC2KfZhSAx2IwgMtiMIDMuCi0g2YbZgtin2Lcg2YHYsdi52YrYqSDYqtit2Kog2YPZhCDYsdmC2YUuCi0g2K7ZhNin2LXYqSDZgti12YrYsdipLgrZhNinINiq2K7YsdisINi52YYg2KfZhNmF2Yij2LTYsdmKLg==')
+        maxTokens: 800,
+        temperature: 0.2,
+        instruction: "المستخدم يطلب شرحاً. اشرح بشكل واضح ومباشر. لا تستخدم قوالب عامة مثل 'النقاط الأساسية التفصيلية' إلا إذا طلب تفصيلاً. لا تضف كلمات عشوائية أو رموز غريبة."
       };
 
     default:
       return {
         maxTokens: 500,
-        temperature: 0.3,
-        instruction: decodeText('2KPYrNioINi52YTZiSDYs9ik2KfZhCDYp9mE2YXYs9iq2K7Yr9mFINmF2KjYp9i02LHYqS4K2YTYpyDYqti62YrZkdixINin2YTZhdmI2LbZiNi5LgrYpdiw2Kcg2YPYp9mGINin2YTYs9ik2KfZhCDYutmK2LEg2YjYp9i22K3YjCDYp9iz2KPZhCDYs9ik2KfZhNin2Ysg2KrZiNi22YrYrdmK2KfZiyDZiNin2K3Yr9in2Ysu')
+        temperature: 0.2,
+        instruction: "أجب عن سؤال المستخدم بشكل مباشر تماماً. إذا كان سؤال نعم/لا ابدأ بنعم أو لا. لا تنتقل لموضوع آخر. لا تطل إلا إذا طلب تفاصيل."
       };
   }
 }
 
 export function createFinalSystemPrompt(basePrompt: string, responsePolicy: ResponsePolicy): string {
-  const template = decodeText('2KrYudmE2YrZhdin2Kog2K7Yp9i12Kkg2KjZh9iw2Ycg2KfZhNix2LPYp9mE2Kk6CntpbnN0cnVjdGlvbn0KCtmC2KfYudiv2Kkg2YXZh9mF2Kkg2KzYr9in2Ys6Ctii2K7YsSDYsdiz2KfZhNipINmF2YYg2KfZhNmF2LPYqtiu2K/ZhSDZh9mKINin2YTYs2hpc3Rvcnkg2KfZhNmE2LDZiiDZiNin2LfZhCDYp9mE2KXZitis2KfYqNmKINi52YTZmS4K2YTYpyDYqtYr2Kgg2LnZhNmJINix2LPYp9mE2Kkg2YLYp9mK2YXYqSDZhdmMgaGlzdG9yeSDYpdmE2Kcg2KXYsNinINi32YTYqCDin2YTZhdiz2KrYrtiv2YUg2LDZhNmDINi12LHYp9it2KkuCgrYqtmG2LPZitmCINin2YTYsdivOgotINil2LDYpyDZg9in2YbYqiDYp9mE2LHYs9in2YTYqSDYqtit2YrYqdiMINin2KzYudmEINin2YTYsdivINiz2LfYsdin2Ysg2YjYp9it2K/Yp9mLINmB2YLYty4KLSDYpdiw2Kcg2YPYp9mG2Kog2KfZhNix2LPYp9mE2Kkg2YLYtdmK2LHYqdiMINin2KzYudmEINin2YTYsdivINmF2K7Yqti12LHYp9mLLgotINil2LDYpyDZg9in2YYg2KfZhNiz2KTYp9mEINmK2K3Yqtin2Kwg2LTYsdit2KfZi9iMINin2LPYqtiu2K/ZhSDYqtmG2LPZitmC2KfZiyDZhdmG2LjZhdin2YsuCi0g2YTYpyDYqtis2LnZhCDYp9mE2LHYryDZg9iq2YTYqSDZhti1INi32YjZitmE2Kku');
-  
   return `
 ${basePrompt}
 
-${template.replace('{instruction}', responsePolicy.instruction)}
+[تعليمات خاصة بهذه الرسالة]
+${responsePolicy.instruction}
 `;
 }
 
