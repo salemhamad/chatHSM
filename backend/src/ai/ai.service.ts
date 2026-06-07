@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { MockProvider } from './providers/mock.provider';
 import { GeminiProvider } from './providers/gemini.provider';
 import { OpenAIProvider } from './providers/openai.provider';
-import { ChatMessage, StreamOptions } from './providers/ai-provider.interface';
+import { IAiProvider, ChatMessage, StreamOptions } from './providers/ai-provider.interface';
 import { Observable, of } from 'rxjs';
 import { tap, finalize } from 'rxjs/operators';
 import { RagService } from '../knowledge/rag.service';
@@ -20,7 +20,7 @@ import {
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
-  private provider: GeminiProvider | MockProvider;
+  private provider: IAiProvider;
 
   constructor(
     private readonly prisma: PrismaService,

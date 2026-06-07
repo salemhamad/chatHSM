@@ -43,7 +43,7 @@ export class OpenAIProvider implements IAiProvider {
     }
   }
 
-  async streamChat(messages: ChatMessage[], options?: StreamOptions): Promise<Observable<string>> {
+  streamChat(messages: ChatMessage[], options?: StreamOptions): Observable<string> {
     if (!this.isInitialized) {
       this.logger.warn('Attempted to use OpenAI provider without a valid API key');
     }
