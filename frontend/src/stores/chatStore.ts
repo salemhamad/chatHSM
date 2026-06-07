@@ -138,10 +138,9 @@ export const useChatStore = create<ChatStore>()(
             messages: [],
           }));
           return res.id;
-        } catch (error) {
-          console.error('Failed to create conversation in DB, generating local ID', error);
-          const localId = generateId();
-          return localId;
+        } catch (error: any) {
+          console.error('Failed to create conversation in DB', error);
+          throw new Error('Failed to create conversation: ' + (error?.message || 'Unknown error'));
         }
       },
 
@@ -153,7 +152,34 @@ export const useChatStore = create<ChatStore>()(
         
         // 1. If no active conversation, create one on the backend first
         if (!convId) {
-          convId = await createConversation(content.substring(0, 30) + '...');
+          try {
+            convId = await createConversation(content.substring(0, 30) + '...');
+          } catch (error: any) {
+            const errorMsg: Message = {
+              id: generateId(),
+              role: 'SYSTEM',
+              content: `⚠️ Error creating conversation: ${error.message || 'Server unreachable'}`,
+              isStreaming: false,
+              conversationId: 'temp',
+              userId: 'system',
+              attachments: [],
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            addMessage({
+              id: generateId(),
+              role: 'USER',
+              content,
+              isStreaming: false,
+              conversationId: 'temp',
+              userId: 'user',
+              attachments: [],
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+            addMessage(errorMsg);
+            return;
+          }
         }
 
         // 2. Upload any pending attachments to the backend

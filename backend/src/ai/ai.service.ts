@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MockProvider } from './providers/mock.provider';
 import { GeminiProvider } from './providers/gemini.provider';
+import { OpenAIProvider } from './providers/openai.provider';
 import { ChatMessage, StreamOptions } from './providers/ai-provider.interface';
 import { Observable, of } from 'rxjs';
 import { tap, finalize } from 'rxjs/operators';
@@ -25,12 +26,13 @@ export class AiService {
     private readonly prisma: PrismaService,
     private readonly mockProvider: MockProvider,
     private readonly geminiProvider: GeminiProvider,
+    private readonly openAIProvider: OpenAIProvider,
     private readonly ragService: RagService,
     private readonly answerCacheService: AnswerCacheService,
     private readonly modelRouterService: ModelRouterService,
     private readonly memoryService: MemoryService,
   ) {
-    this.provider = this.geminiProvider; // Switched to real Gemini API
+    this.provider = this.openAIProvider; // Switched to OpenAI temporarily due to Gemini 403 error
   }
 
   async generateTitle(firstMessage: string): Promise<string> {
