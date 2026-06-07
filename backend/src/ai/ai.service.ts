@@ -32,7 +32,7 @@ export class AiService {
     private readonly modelRouterService: ModelRouterService,
     private readonly memoryService: MemoryService,
   ) {
-    this.provider = this.openAIProvider; // Switched to OpenAI temporarily due to Gemini 403 error
+    this.provider = this.geminiProvider;
   }
 
   async generateTitle(firstMessage: string): Promise<string> {
