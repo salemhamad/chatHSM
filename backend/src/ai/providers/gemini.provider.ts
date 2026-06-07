@@ -38,10 +38,33 @@ export class GeminiProvider implements IAiProvider {
     const userPrompt = historyMessages.pop()?.content || '';
 
     // Map history to Gemini format
-    const history = historyMessages.map(m => ({
+    const rawHistory = historyMessages.map(m => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }],
     }));
+
+    // Enforce alternating roles starting with 'user'
+    const history: { role: string, parts: { text: string }[] }[] = [];
+    for (const msg of rawHistory) {
+      if (history.length === 0) {
+        if (msg.role === 'user') {
+          history.push(msg);
+        }
+      } else {
+        const lastMsg = history[history.length - 1];
+        if (lastMsg.role !== msg.role) {
+          history.push(msg);
+        } else {
+          // Combine consecutive messages of the same role
+          lastMsg.parts[0].text += '\n\n' + msg.parts[0].text;
+        }
+      }
+    }
+
+    // History must end with 'model' because the next message is 'user' (userPrompt)
+    if (history.length > 0 && history[history.length - 1].role === 'user') {
+      history.pop();
+    }
 
     // Select model based on options (Model Router output can be injected via messageType/options)
     // Default to flash, pro for coding
