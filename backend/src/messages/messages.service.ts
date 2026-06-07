@@ -13,13 +13,19 @@ export class MessagesService {
     content: string,
     attachmentIds: string[] = [],
   ) {
-    // Verify conversation access
-    const conversation = await this.prisma.conversation.findUnique({
+    // Verify conversation access or create if it doesn't exist
+    let conversation = await this.prisma.conversation.findUnique({
       where: { id: conversationId },
     });
 
     if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+      conversation = await this.prisma.conversation.create({
+        data: {
+          id: conversationId,
+          userId,
+          title: 'New Chat',
+        },
+      });
     }
 
     if (conversation.userId !== userId) {

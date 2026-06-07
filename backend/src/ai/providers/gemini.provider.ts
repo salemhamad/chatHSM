@@ -68,9 +68,9 @@ export class GeminiProvider implements IAiProvider {
 
     // Select model based on options (Model Router output can be injected via messageType/options)
     // Default to flash, pro for coding
-    let modelName = 'gemini-1.5-flash';
+    let modelName = 'gemini-1.5-flash-latest';
     if (options?.messageType === 'coding' || options?.messageType === 'deepResearch' || options?.messageType === 'large_model_or_external') {
-      modelName = 'gemini-1.5-pro';
+      modelName = 'gemini-1.5-pro-latest';
     }
 
     const model = this.genAI.getGenerativeModel({
@@ -104,7 +104,7 @@ export class GeminiProvider implements IAiProvider {
 
   async generateTitle(firstMessage: string): Promise<string> {
     try {
-      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
       const prompt = `Generate a very short, concise title (max 4-5 words) for the following chat message. Do not include quotes or extra text, just the title.\n\nMessage: ${firstMessage}`;
       const result = await model.generateContent(prompt);
       return result.response.text().trim() || 'New Chat';
