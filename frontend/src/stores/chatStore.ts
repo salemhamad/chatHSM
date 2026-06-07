@@ -275,16 +275,21 @@ export const useChatStore = create<ChatStore>()(
           const decoder = new TextDecoder('utf-8');
           if (!reader) throw new Error('Readable stream not supported.');
 
+          let buffer = '';
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
+            buffer += decoder.decode(value, { stream: true });
+            
+            // Extract complete events separated by \n\n
+            let eventEndIndex;
+            while ((eventEndIndex = buffer.indexOf('\n\n')) >= 0) {
+              const eventStr = buffer.slice(0, eventEndIndex).trim();
+              buffer = buffer.slice(eventEndIndex + 2);
 
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const dataStr = line.replace('data: ', '').trim();
+              if (eventStr.startsWith('data: ')) {
+                const dataStr = eventStr.replace('data: ', '').trim();
                 
                 try {
                   const data = JSON.parse(dataStr);
@@ -323,8 +328,12 @@ export const useChatStore = create<ChatStore>()(
                     // Refresh conversation list to update dates
                     await get().loadConversations();
                   }
-                } catch (e) {
-                  // Parsing incomplete JSON chunks gracefully
+                } catch (e: any) {
+                  // If it's the error thrown by data.type === 'error', rethrow it
+                  if (e.message && e.message !== 'Unexpected end of JSON input') {
+                     throw e;
+                  }
+                  // Otherwise, parsing incomplete JSON chunks gracefully
                 }
               }
             }
