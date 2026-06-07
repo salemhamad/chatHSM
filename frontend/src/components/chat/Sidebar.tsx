@@ -21,9 +21,10 @@ import { useChatStore } from "@/stores/chatStore";
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  isMobile?: boolean;
 }
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed, onToggle, isMobile }: SidebarProps) {
   const { t, i18n } = useTranslation();
   const {
     conversations,
@@ -50,12 +51,26 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   );
 
   return (
-    <motion.aside
-      initial={false}
-      animate={{ width: collapsed ? 76 : 288 }}
-      transition={{ type: "spring", stiffness: 260, damping: 30 }}
-      className="relative z-20 flex h-screen shrink-0 flex-col glass-strong"
-    >
+    <>
+      {isMobile && !collapsed && (
+        <div
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+          onClick={onToggle}
+        />
+      )}
+      <motion.aside
+        initial={false}
+        animate={{ 
+          width: isMobile ? 288 : (collapsed ? 76 : 288),
+          x: isMobile ? (collapsed ? (i18n.language === "ar" ? 288 : -288) : 0) : 0,
+        }}
+        transition={{ type: "spring", stiffness: 260, damping: 30 }}
+        className={cn(
+          "relative z-50 flex h-screen shrink-0 flex-col glass-strong",
+          isMobile && "fixed top-0 bottom-0",
+          isMobile && i18n.language === "ar" ? "right-0" : "left-0"
+        )}
+      >
       <div className="flex items-center justify-between gap-2 p-4">
         <div className="flex items-center gap-2.5 overflow-hidden">
           <img
@@ -174,6 +189,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         <SidebarItem icon={Settings} label={t("sidebar.settings")} collapsed={collapsed} />
       </div>
     </motion.aside>
+    </>
   );
 }
 

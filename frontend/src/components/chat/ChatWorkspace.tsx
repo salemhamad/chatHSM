@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Menu } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { ChatInput } from "./ChatInput";
 import { MessageBubble } from "./MessageBubble";
@@ -18,7 +18,19 @@ const suggestionKeys = [
 export function ChatWorkspace() {
   const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [input, setInput] = useState("");
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setCollapsed(true);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const {
     messages,
@@ -57,13 +69,23 @@ export function ChatWorkspace() {
   return (
     <div className="relative flex h-screen w-full overflow-hidden text-foreground">
       <AuroraBackground />
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} isMobile={isMobile} />
 
       <main className="relative flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.7)]" />
-            <span>Online</span>
+        <header className="flex items-center justify-between px-4 sm:px-6 py-4">
+          <div className="flex items-center gap-3">
+            {isMobile && collapsed && (
+              <button
+                onClick={() => setCollapsed(false)}
+                className="rounded-md p-2 -ml-2 text-muted-foreground hover:bg-white/10 hover:text-foreground"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            )}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.7)]" />
+              <span>Online</span>
+            </div>
           </div>
         </header>
 
