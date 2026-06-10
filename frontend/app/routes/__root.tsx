@@ -8,14 +8,14 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <html lang="en" className="dark">
+    <html lang="ar" dir="rtl">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>ChatHSM Premium</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <title>ChatHSM 3.1Pro</title>
         <HeadContent />
       </head>
-      <body className="bg-background text-foreground antialiased min-h-screen">
+      <body>
         <Outlet />
         <ScrollRestoration />
         <Scripts />
